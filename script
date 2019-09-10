@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "y" | docker-machine regenerate-certs Char
+docker-machine restart Char
+eval $(docker-machine env Char)

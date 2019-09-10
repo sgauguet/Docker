@@ -1,0 +1,34 @@
+apt-get update && apt-get install sudo vim systemd wget -y
+adduser --disabled-password --gecos "" sgauguet
+mkdir -p /opt/teamspeak
+chown sgauguet:sgauguet /opt/teamspeak/
+chmod 0770 /opt/teamspeak/
+cat > /etc/systemd/system/teamspeak3server.service <<EOF
+[Unit]
+Description=Teamspeak 3 Server
+
+[Service]
+ExecStart=/opt/teamspeak/ts3server_startscript.sh start
+ExecStop=/opt/teamspeak/ts3server_startscript.sh stop
+PIDFile=/opt/teamspeak/ts3server.pid
+Type=forking
+User=sgauguet
+Group=sgauguet
+
+[Install]
+WantedBy=multi-user.target
+EOF
+chmod 664 /etc/systemd/system/teamspeak3server.service
+systemctl daemon-reload
+systemctl enable teamspeak3server.service
+
+echo "Cmnd_Alias TEAMSPEAK_CMDS = /bin/systemctl start teamspeak3server, /bin/systemctl stop teamspeak3server, /bin/systemctl restart teamspeak3server, /bin/systemctl status teamspeak3server
+sgauguet ALL=NOPASSWD: TEAMSPEAK_CMDS, /sbin/reboot
+" >> /etc/sudoers
+
+sudo -iu sgauguet
+
+wget http://dl.4players.de/ts/releases/3.0.13.8/teamspeak3-server_linux_amd64-3.0.13.8.tar.bz2
+tar xfv teamspeak3-server_linux_amd64-3.0.13.8.tar.bz2
+mv ~/teamspeak3-server_linux_amd64/* /opt/teamspeak/
+rm -rf ~/teamspeak3-server_linux_amd64*
