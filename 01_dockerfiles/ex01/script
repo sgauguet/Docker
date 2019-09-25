@@ -1,34 +1,32 @@
-apt-get update && apt-get install sudo vim systemd wget -y
-adduser --disabled-password --gecos "" sgauguet
-mkdir -p /opt/teamspeak
-chown sgauguet:sgauguet /opt/teamspeak/
-chmod 0770 /opt/teamspeak/
-cat > /etc/systemd/system/teamspeak3server.service <<EOF
+apt-get update && apt-get install sudo vim systemd wget bzip2 -y
+cd /tmp
+wget https://files.teamspeak-services.com/releases/server/3.9.1/teamspeak3-server_linux_amd64-3.9.1.tar.bz2 
+tar -xf teamspeak3-server_linux_amd64-3.9.1.tar.bz2 
+mkdir -p /opt/teamspeak-server
+mv * /opt/teamspeak-server
+cd /opt/teamspeak-server/teamspeak3-server_linux_amd64
+useradd -d /opt/teamspeak-server teamspeak-user
+sudo touch .ts3server_license_accepted
+chown -R teamspeak-user:teamspeak-user /opt/teamspeak-server
+
+cat > /etc/systemd/system/teamspeak.service << EOF
 [Unit]
-Description=Teamspeak 3 Server
+Description=TeamSpeak3 Server
+Wants=network-online.target
+After=syslog.target network.target
 
 [Service]
-ExecStart=/opt/teamspeak/ts3server_startscript.sh start
-ExecStop=/opt/teamspeak/ts3server_startscript.sh stop
-PIDFile=/opt/teamspeak/ts3server.pid
+WorkingDirectory=/opt/teamspeak-server/teamspeak3-server_linux_amd64
+User=teamspeak-user
 Type=forking
-User=sgauguet
-Group=sgauguet
+Restart=always
+ExecStart=/opt/teamspeak-server/teamspeak3-server_linux_amd64/ts3server_startscript.sh start
+ExecStop=/opt/teamspeak-server/teamspeak3-server_linux_amd64/ts3server_startscript.sh stop
+ExecReload=/opt/teamspeak-server/teamspeak3-server_linux_amd64/ts3server_startscript.sh reload
+PIDFile=/opt/teamspeak-server/teamspeak3-server_linux_amd64/ts3server.pid
 
 [Install]
 WantedBy=multi-user.target
 EOF
-chmod 664 /etc/systemd/system/teamspeak3server.service
-systemctl daemon-reload
-systemctl enable teamspeak3server.service
 
-echo "Cmnd_Alias TEAMSPEAK_CMDS = /bin/systemctl start teamspeak3server, /bin/systemctl stop teamspeak3server, /bin/systemctl restart teamspeak3server, /bin/systemctl status teamspeak3server
-sgauguet ALL=NOPASSWD: TEAMSPEAK_CMDS, /sbin/reboot
-" >> /etc/sudoers
-
-sudo -iu sgauguet
-
-wget http://dl.4players.de/ts/releases/3.0.13.8/teamspeak3-server_linux_amd64-3.0.13.8.tar.bz2
-tar xfv teamspeak3-server_linux_amd64-3.0.13.8.tar.bz2
-mv ~/teamspeak3-server_linux_amd64/* /opt/teamspeak/
-rm -rf ~/teamspeak3-server_linux_amd64*
+systemctl enable teamspeak
