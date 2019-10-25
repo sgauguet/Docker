@@ -3,3 +3,8 @@
 echo "y" | docker-machine regenerate-certs Char
 docker-machine restart Char
 eval $(docker-machine env Char)
+
+#docker build -t vim/emacs .
+#docker run --tty --interactive vim/emacs
+
+#docker build -t byotss .

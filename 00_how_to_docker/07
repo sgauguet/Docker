@@ -1,1 +1,1 @@
-docker inspect overload -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
+docker inspect overlord -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
